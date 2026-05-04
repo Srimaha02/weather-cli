@@ -1,3 +1,4 @@
+from cache import get_cached, save_cache
 from database import init_db, save_search, get_history
 import requests
 import sys
@@ -28,8 +29,14 @@ city = sys.argv[1] if len(sys.argv) > 1 else "Chennai"
 url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
 
 # API call
-response = requests.get(url)
-data = response.json()
+# Check cache first
+data = get_cached(city)
+
+if not data:
+    # Cache miss → call API
+    response = requests.get(url)
+    data = response.json()
+    save_cache(city, data)
 
 # Error handling
 if data.get("cod") != 200:
